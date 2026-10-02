@@ -92,3 +92,29 @@ args:
 	VITE_SUPABASE_ANON_KEY: "dummy-key
 	VITE_SUPABASE_SERVICE_ROLE_KEY: "dummy-service-key"
 
+## PHASE 2
+
+#### Problem
+To optimise the image size of frontend part since the image size is 460MB 
+Original size but we need it to be strictly under 110 MB.
+./screenshots/p2-original-size.png
+
+#### Diagnosis & Fix
+1. The Dockerfile uses heavy node:20 
+		Fix: node:20-alpine
+				Replaced the heavy standard Node base image with the alpine version
+2.  In the original file the COPY . . was placed before the npm install. When we change the source-code it had to reinstall the npm dependencies from the beginning this leads to inefficiency therefore now it is placed after npm install
+		 Fix: RUN npm install
+			COPY . .
+3.  We copy the packag.json before the rest of the source file is copied because we utilise the Docker caching mechanism to build any new dependencies in layers. Since they change less frequently then the source code, if there is any change in the dependencies it safely installs it that specific change, if there is only change in the source code it is left untouched. Therefore we optimise the caching here.
+		Fix:   COPY package*.json ./
+				Add it before the  npm install mentioned above
+4.  Switching to lightweight Nginx server because the Node-based static server because the Node-based static server dragged Node.js runtime in to the container to serve the static files BUT Nginx is lightweight doesnot need Node.js to run
+		 Fix: FROM nginx:alpine
+				COPY --from=builder /app/dist /usr/share/nginx/html
+				EXPOSE 80
+				CMD ["nginx", "-g", "daemon off;"]				
+				since we changed our server to nginx we have to modify it in CMD also
+
+### RESULT
+./screenshots/p2-optimised-size.png
