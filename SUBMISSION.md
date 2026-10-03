@@ -118,3 +118,19 @@ Original size but we need it to be strictly under 110 MB.
 
 ### RESULT
 ./screenshots/p2-optimised-size.png
+
+## PHASE 3
+## Diagnosis & Fix
+1. 
+	Database credentials and backend connection strings were hardcoded directly in docker-compose.yml . This exposes sensitive data if the file is committed to version control.
+		 FIX: I created .env file to store DB keys securely. Then connected them to database environment and the backend's URL using ${ } added the .env file to the gitignore file so it cannot be commited and DB remains same.
+2.  
+	The database must allow internal traffic from the backend container but must block direct access from the host machine to minimize attack surfaces. 
+			 FIX: did not include port mapping in DB part because the database and backend share the internal backend-network, omitting  the host port mapping keeps port 5432 entirely isolated from the host OS while still allowing internal container-to-container communication.
+	P.S. It was already preseent. 
+3.  the volume-part did not require any kind of modification since it was already correct
+			volumes:
+			 - postgres_data:/var/lib/postgresql/data
+result
+
+/screenshots/p3-result.png
