@@ -134,3 +134,18 @@ Original size but we need it to be strictly under 110 MB.
 result
 
 /screenshots/p3-result.png
+
+## PHASE 4
+### PROBLEM
+Since our proxy had access to backend network, it can reach the database which violates the isolation of the database. 
+And we have to expose the proxy to port 80 and 443
+### Diagnosis & Fix
+
+1.  As mentioned above the orbis proxy was connected to both frontend and backend it voilated the isolation of the database, since it can give entry to the database via the proxy. And the port 443 was assigned additionally inorder to handle the https traffic
+		**FIX** : removed the backend-network from the orbis-proxy in the docker-comose.yml file , restricting only to fronted-network. The backend container remains attached to both the networks which acts as a bridge.
+
+ **BEFORE**
+ ./screenshots/p4-before-backend.png
+ **AFTER**
+  ./screenshots/p4-after-backend.png
+  ./screenshots/p4-output.png
