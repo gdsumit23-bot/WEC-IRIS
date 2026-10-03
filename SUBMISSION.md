@@ -147,5 +147,24 @@ And we have to expose the proxy to port 80 and 443
  **BEFORE**
  ![alt phase-4 before](./screenshots/p4-before-backend.png)
  **AFTER**
+<<<<<<< HEAD
+  ./screenshots/p4-after-backend.png
+  ./screenshots/p4-output.png
+
+  ## PHASE 5
+
+### Problem 
+
+To Extend the provided Nginx configuration to support secure HTTPS connections.
+### Fix
+1. Generated self signed SSL certificates nginx-selfsigned.crt & nginx-selfsigned.key using OPENSSL with 365-days validity period targetting localhost
+		Configured the cryptographic subject fields specifically for local development (C=IN, ST=Karnataka, L=Surathkal, O=NITK, OU=IT, CN=localhost).
+		Then, 
+			Stored the generated keys securely within the local `nginx/ssl/` directory.
+2. Docker Compose Configuration
+		Updated the proxy service volume mappings to securely mount the local SSL certificate directory into the Nginx container as read-only
+		 ./nginx/ssl:/etc/nginx/ssl:ro
+=======
   ![alt phase-4 after](./screenshots/p4-after-backend.png)
   ![alt phase-4 output](./screenshots/p4-output.png)
+>>>>>>> f0ee25b817a016ab6b0da0c470c39b462b077933
