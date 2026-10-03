@@ -117,7 +117,7 @@ Original size but we need it to be strictly under 110 MB.
 				since we changed our server to nginx we have to modify it in CMD also
 
 ### RESULT
-./screenshots/p2-optimised-size.png
+![alt p2-ptimised.png](./screenshots/p2-optimised-size.png)
 
 ## PHASE 3
 ## Diagnosis & Fix
@@ -133,7 +133,7 @@ Original size but we need it to be strictly under 110 MB.
 			 - postgres_data:/var/lib/postgresql/data
 result
 
-/screenshots/p3-result.png
+![alt phase-3 result](./screenshots/p3-result.png)
 
 ## PHASE 4
 ### PROBLEM
@@ -145,7 +145,7 @@ And we have to expose the proxy to port 80 and 443
 		**FIX** : removed the backend-network from the orbis-proxy in the docker-comose.yml file , restricting only to fronted-network. The backend container remains attached to both the networks which acts as a bridge.
 
  **BEFORE**
- ./screenshots/p4-before-backend.png
+ ![alt phase-4 before](./screenshots/p4-before-backend.png)
  **AFTER**
-  ./screenshots/p4-after-backend.png
-  ./screenshots/p4-output.png
+  ![alt phase-4 after](./screenshots/p4-after-backend.png)
+  ![alt phase-4 output](./screenshots/p4-output.png)
