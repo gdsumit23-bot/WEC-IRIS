@@ -416,7 +416,7 @@ const Home = () => {
               <h1 className="text-[42px] sm:text-[50px] md:text-[110px] leading-tight md:leading-none tracking-tight">
                 <span className="text-black font-normal">create.</span>
                 <br />
-                <span className="text-gray-400 font-light">collaborate.</span>
+                <span className="text-gray-400 font-light">cooperate.</span>
                 <br />
                 <span className="text-black font-normal">celebrate.</span>
               </h1>
