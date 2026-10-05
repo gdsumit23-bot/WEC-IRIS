@@ -159,10 +159,15 @@ And we have to expose the proxy to port 80 and 443
 To Extend the provided Nginx configuration to support secure HTTPS connections.
 ### Fix
 1. Generated self signed SSL certificates nginx-selfsigned.crt & nginx-selfsigned.key using OPENSSL with 365-days validity period targetting localhost
-		Configured the cryptographic subject fields specifically for local development (C=IN, ST=Karnataka, L=Surathkal, O=NITK, OU=IT, CN=localhost).
-		Then, 
 			Stored the generated keys securely within the local `nginx/ssl/` directory.
 2. Docker Compose Configuration
 		Updated the proxy service volume mappings to securely mount the local SSL certificate directory into the Nginx container as read-only
 		 ./nginx/ssl:/etc/nginx/ssl:ro
+### RESULTS
+**Succesfully redirected http traffic to https**
+![alt=p-5 redirection](./screenshots/p5-redirection.png)
+
+**Generated a self-signed certificate**
+![alt=phase-5 selfsigned certifite](./screenshots/p5-selfsigned-certificate.png)
+
 
