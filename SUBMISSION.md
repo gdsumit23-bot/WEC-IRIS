@@ -224,3 +224,48 @@ To Extend the provided Nginx configuration to support secure HTTPS connections.
 							then install the node package manager so that i can use the same things even if there is a change in the source code.
 							so these are done so we can cache them easily.
 		Therefore caching efficiency is enhanced by the dockerfile layering order
+
+
+
+## PHASE 7
+
+In order to setup the nginx as a load-balancer i added an upstream named it as backend_pool and instructed it listen to the port 4000 of each container
+upstream backend_pool
+{
+server backend:4000;
+}
+
+to setup the nginx as reverse_proxy added proxy_pass inside location /api/ 
+proxy_pass http://backend_pool;
+
+
+**TEST-1**
+![](./screenshots/p7-test1.png)
+
+**TEST-2**
+![](./screenshots/p7-test2.png)
+
+### test-1
+*performance for running 10 backend containers before rate limiting was applied*
+1. Processed approximately **64,176 requests per second**.
+2.  Maintained a response time of **1.12 milliseconds**.
+3. Handled roughly **642,000 total requests** over the 10-second window. with average of 64.176 k requests
+
+### test-2
+*performance for running 10 backend containers after rate limiting was applied*
+1. average latency plummeted to just **0.08 ms**
+2. 10 Node.js containers were completely shielded from the traffic spike. They only had to process the strictly allowed quota (`10r/s` plus the `20` burst) instead of being overwhelmed by the 100 concurrent connections
+3. The average requests to **119,624 requests per second**.
+
+for this we added a rate limiters
+limit_req_zone $binary_remote_addr zone=perip:10m rate=10r/s;
+
+location /api/ {
+limit_req zone=perip burst=20 nodelay;
+.
+...
+}
+
+why?did this happen?
+1. the 100 concurrent connections hit, Nginx instantly rejected everything over your 10-per-second limit. Because those blocked requests never traveled to the backend Node.js containers, the response time was nearly instantaneous.
+2.  because decling the request takes less time than routing to backend

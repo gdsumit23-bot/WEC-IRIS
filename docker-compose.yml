@@ -16,7 +16,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: orbis-backend
     environment:
       PORT: 4000
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}?schema=public
@@ -38,6 +37,8 @@ services:
         VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
         VITE_SUPABASE_SERVICE_ROLE_KEY: ${VITE_SUPABASE_SERVICE_ROLE_KEY}
     container_name: orbis-frontend
+    depends_on:
+      - backend
     networks:
       - frontend-network
     restart: unless-stopped
