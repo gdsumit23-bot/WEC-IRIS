@@ -170,4 +170,65 @@ To Extend the provided Nginx configuration to support secure HTTPS connections.
 **Generated a self-signed certificate**
 ![alt=phase-5 selfsigned certifite](./screenshots/p5-selfsigned-certificate.png)
 
+## PHASE-6
 
+### Diagnosis & Fix
+
+1. environment variabes in docker-compose .yml file was hardcoded so we moved those variables and apped in to separate .env file and made user that it is added to the .gitignore because they should not be commited. Inorder to access them we used ${ } , so it can reference to the .env file and get the value.
+	FIX:
+		POSTGRES_USER: ${DB_USER}
+		POSTGRES_PASSWORD: ${DB_PASSWORD}
+		POSTGRES_DB: ${DB_NAME}     --->had done this before itself
+	FIX:
+		AUTH0_ISSUER_BASE_URL: ${AUTH0_ISSUER_BASE_URL}
+		AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+	FIX:
+		VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+		VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+		VITE_SUPABASE_SERVICE_ROLE_KEY: ${VITE_SUPABASE_SERVICE_ROLE_KEY}
+
+**changes made**
+![alt='changes_made'](./screenshots/p6-changemade.png)
+
+2. Changed the source code in the frontend, inorder to analyse the docker-build logs and cache hits occursD
+		According to me,
+			whenever we try to rebuild an image by making changes to the sourcecode
+			we tend to reuse the previously built images in our system, if there is no change to that layer, taking advantage of multilayer build mechanism of the docker. In the changed part's layer there is a cache miss and therefore it is rebuilt from scratch. Whereas in the case of unchanged layer there is cache hit and therefore it is reutilised. 
+
+**the build-log information**
+![alt='build log image'](./screenshots/p6-build-logs.png)
+
+			 from our dockere build log we can analyse that
+			 The word **CACHED** ---> cache hit
+			 whereas,
+			 when it is not present ---> cache miss
+			 1. from the first line it was able cache nginx:alpine image and node:20-alpine image which we used in the Dockerfile of the frontend.
+			 2.  it was able cache /app directory 
+			 3.  it was able to cache package.json and package-lock.json since there were no changes in the dependencies
+			 4. did not install node modules used the previously installed ones itself
+			 5. **but here in the frontend builder since the frontend source code was changed the entire thing had to be copied and rebuilt again from the scratch** and nginx copies these builder files into its COPY --from=builder /app/dist /usr/share/nginx/html  because it acts as web server and needs to accomodate all the changes therefore results in cache miss
+			 6. and the subsequent  "parts till CACHED [backend 6/6] RUN npx prisma generate"  were cache hits means they were reutilised
+			 7. **whereas npm run build resulted in cache miss because it was below the source code and npm run build should come after the copy becomes it serves the purpose of converting the files into static files and therefore this cannot be reutilised and leads to cache miss**
+			 8. **and nginx copies these builder files into its COPY --from=builder /app/dist /usr/share/nginx/html  because it acts as web server and needs to accomodate all the changes therefore results in cache miss**
+
+**Cache-efficient Dockerfile**
+![alt='Dockerfile'](./screenshots/p6-sensible-layering.png)
+
+		see the Dockerfiles builds the images in layers and these layers are built from top to bottom approach and whenever it encounters that copying certain files is no longer resulting in the same previously built image it will not cache that and builds the subsequent lines/layers below it from scratch 
+			therefore while writing our Dockerfile we have to make sensible choices so we can efficiently build the image without wasting much time 
+				As in our build....
+					we placed COPY . .
+					after RUN npm install, and package*.json / 
+							lets assume we placed it before it 
+							i.e., if we had it like this,
+								COPY . .
+								RUN npm install
+								first of all we had  to forcefully rebuild all the node modules which would take alot of time
+								and the package.json, rarely changes and we had to recopy it again,
+							So as to avoid it and the improve the efficiency of the build time we 
+							first, 
+							explicitly copy the package.json --->as i mentioned rarely changes
+							and then,
+							then install the node package manager so that i can use the same things even if there is a change in the source code.
+							so these are done so we can cache them easily.
+		Therefore caching efficiency is enhanced by the dockerfile layering order
